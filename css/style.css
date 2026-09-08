@@ -745,6 +745,14 @@ section {
   flex-direction: column;
 }
 
+.project-card .tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
 .project-card .tag {
   display: inline-block;
   align-self: flex-start;
@@ -757,6 +765,37 @@ section {
   padding: 4px 10px;
   border-radius: 999px;
   margin-bottom: 12px;
+}
+
+.project-card .tag-row .tag {
+  margin-bottom: 0;
+}
+
+.project-card .tag-wip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.16);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+[data-theme="dark"] .project-card .tag-wip {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.18);
+}
+
+.project-card .tag-wip::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .project-card h3 {
