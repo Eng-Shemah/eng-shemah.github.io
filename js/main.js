@@ -19,12 +19,12 @@ if (contactForm) {
   });
 }
 
-// Decorative MacBook in the hero background: rotates in 3D as you scroll.
+// Decorative MacBook fixed behind the whole page: spins in 3D as you scroll.
 const macbook3d = document.getElementById("macbook3d");
 if (macbook3d && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
   let macbookTicking = false;
   const updateMacbook = () => {
-    const angle = -18 + window.scrollY * 0.15;
+    const angle = -18 + window.scrollY * 0.6;
     macbook3d.style.transform = `rotateY(${angle}deg) rotateX(6deg)`;
     macbookTicking = false;
   };
