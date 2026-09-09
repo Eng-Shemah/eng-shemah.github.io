@@ -1,6 +1,38 @@
 // Footer year
 document.getElementById("year").textContent = new Date().getFullYear();
 
+// Top scroll-progress bar
+const scrollProgressEl = document.getElementById("scrollProgress");
+if (scrollProgressEl) {
+  const updateScrollProgress = () => {
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docHeight > 0 ? Math.min(100, Math.max(0, (scrollTop / docHeight) * 100)) : 0;
+    scrollProgressEl.style.width = pct + "%";
+  };
+  window.addEventListener("scroll", updateScrollProgress, { passive: true });
+  window.addEventListener("resize", updateScrollProgress, { passive: true });
+  updateScrollProgress();
+}
+
+// Contact form -> opens the visitor's own email client with the message
+// pre-filled (no backend on GitHub Pages, so nothing is sent from here).
+const contactForm = document.getElementById("contactForm");
+if (contactForm) {
+  contactForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = contactForm.name.value.trim();
+    const email = contactForm.email.value.trim();
+    const message = contactForm.message.value.trim();
+
+    const subject = `Portfolio message from ${name || "your site"}`;
+    const body = `${message}\n\n— ${name}${email ? ` (${email})` : ""}`;
+    const mailto = `mailto:sgwizarobert@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    window.location.href = mailto;
+  });
+}
+
 // Mobile nav toggle
 const navToggle = document.getElementById("navToggle");
 const navLinks = document.getElementById("navLinks");
