@@ -1,6 +1,46 @@
 // Footer year
 document.getElementById("year").textContent = new Date().getFullYear();
 
+// Contact form -> opens the visitor's own email client with the message
+// pre-filled (no backend on GitHub Pages, so nothing is sent from here).
+const contactForm = document.getElementById("contactForm");
+if (contactForm) {
+  contactForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = contactForm.name.value.trim();
+    const email = contactForm.email.value.trim();
+    const message = contactForm.message.value.trim();
+
+    const subject = `Portfolio message from ${name || "your site"}`;
+    const body = `${message}\n\n— ${name}${email ? ` (${email})` : ""}`;
+    const mailto = `mailto:sgwizarobert@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    window.location.href = mailto;
+  });
+}
+
+// Decorative MacBook in the hero background: rotates in 3D as you scroll.
+const macbook3d = document.getElementById("macbook3d");
+if (macbook3d && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  let macbookTicking = false;
+  const updateMacbook = () => {
+    const angle = -18 + window.scrollY * 0.15;
+    macbook3d.style.transform = `rotateY(${angle}deg) rotateX(6deg)`;
+    macbookTicking = false;
+  };
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (!macbookTicking) {
+        macbookTicking = true;
+        requestAnimationFrame(updateMacbook);
+      }
+    },
+    { passive: true },
+  );
+  updateMacbook();
+}
+
 // Mobile nav toggle
 const navToggle = document.getElementById("navToggle");
 const navLinks = document.getElementById("navLinks");
