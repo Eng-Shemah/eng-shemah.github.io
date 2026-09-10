@@ -1,10 +1,15 @@
 /**
- * Three.js 3D WebGL Futuristic Environment & Scroll Choreography
- * Creates an interactive Cyber Core, orbiting data rings, particle fields,
- * and camera path driven by section scroll positions.
+ * Three.js 3D WebGL Futuristic Environment & Full-Page Scroll Choreography
+ * Creates an expansive, full-viewport 3D cyber universe in the background of the
+ * WHOLE page:
+ * - Centered Grand Cybernetic Core with 3 Concentric Orbital Rings
+ * - 14 Floating Geometric Satellites distributed across the entire viewport
+ * - 2,000 Particle Cyber Starfield spanning edge-to-edge
+ * - Cyber Grid Horizon
+ * - Continuous scroll-driven 3D rotation & Section Camera Choreography
+ * - Interactive pointer parallax & dynamic theme synchronization
  */
 (() => {
-  // Check if THREE is available
   if (typeof THREE === "undefined") {
     console.warn("Three.js not loaded. WebGL background disabled.");
     return;
@@ -13,14 +18,15 @@
   const canvas = document.getElementById("webgl-canvas");
   if (!canvas) return;
 
-  // Reduced motion preference
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // Scene, Camera, Renderer
+  // -------------------------------------------------------------
+  // 1. SCENE, CAMERA, RENDERER
+  // -------------------------------------------------------------
   const scene = new THREE.Scene();
   const fov = 55;
   const camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 0, 12);
+  camera.position.set(0, 0, 13);
 
   let renderer;
   try {
@@ -36,33 +42,37 @@
   }
 
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
 
-  // Theme Colors
+  // -------------------------------------------------------------
+  // 2. THEME COLOR PALETTES
+  // -------------------------------------------------------------
   const themes = {
     dark: {
       coreWire: 0x00f2fe,
-      coreInner: 0x7928ca,
+      coreInner: 0x8b5cf6,
       ring1: 0x00f2fe,
-      ring2: 0x9061f9,
-      nodes: 0x38bdf8,
+      ring2: 0xa855f7,
+      ring3: 0x38bdf8,
+      nodes: 0x00f2fe,
+      satellites: 0x6366f1,
       particles: 0x818cf8,
       light1: 0x00f2fe,
-      light2: 0x8b5cf6,
-      grid: 0x1e1b4b,
-      fog: 0x060a17
+      light2: 0x9333ea,
+      grid: 0x1e1b4b
     },
     light: {
       coreWire: 0x4f46e5,
       coreInner: 0x06b6d4,
       ring1: 0x4f46e5,
       ring2: 0x0284c7,
-      nodes: 0x6366f1,
-      particles: 0x4f46e5,
-      light1: 0x6366f1,
+      ring3: 0x6366f1,
+      nodes: 0x4f46e5,
+      satellites: 0x0284c7,
+      particles: 0x6366f1,
+      light1: 0x4f46e5,
       light2: 0x0ea5e9,
-      grid: 0xc7d2fe,
-      fog: 0xf4f6fb
+      grid: 0xc7d2fe
     }
   };
 
@@ -72,211 +82,239 @@
 
   let currentTheme = themes[getActiveThemeKey()];
 
-  // Lighting
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  // -------------------------------------------------------------
+  // 3. LIGHTING
+  // -------------------------------------------------------------
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.1);
   scene.add(ambientLight);
 
-  const pointLight1 = new THREE.PointLight(currentTheme.light1, 2.5, 30);
-  pointLight1.position.set(5, 5, 5);
+  const pointLight1 = new THREE.PointLight(currentTheme.light1, 3.2, 50);
+  pointLight1.position.set(8, 8, 8);
   scene.add(pointLight1);
 
-  const pointLight2 = new THREE.PointLight(currentTheme.light2, 2.5, 30);
-  pointLight2.position.set(-5, -5, 3);
+  const pointLight2 = new THREE.PointLight(currentTheme.light2, 2.8, 50);
+  pointLight2.position.set(-8, -8, 6);
   scene.add(pointLight2);
 
   // -------------------------------------------------------------
-  // 1. CYBER CORE GROUP
+  // 4. GRAND CENTRAL CYBER STRUCTURE (Anchored in Background Center)
   // -------------------------------------------------------------
-  const cyberGroup = new THREE.Group();
-  scene.add(cyberGroup);
+  const centralGroup = new THREE.Group();
+  centralGroup.position.set(0, 0, 0);
+  scene.add(centralGroup);
 
-  // Outer Wireframe Polyhedron
-  const outerGeo = new THREE.IcosahedronGeometry(3.0, 1);
+  // Outer Wireframe Icosahedron (Large, visible across whole screen)
+  const outerGeo = new THREE.IcosahedronGeometry(4.2, 1);
   const outerMat = new THREE.MeshStandardMaterial({
     color: currentTheme.coreWire,
     wireframe: true,
     transparent: true,
-    opacity: 0.65,
-    roughness: 0.2,
-    metalness: 0.8
+    opacity: 0.75,
+    roughness: 0.15,
+    metalness: 0.85
   });
   const outerMesh = new THREE.Mesh(outerGeo, outerMat);
-  cyberGroup.add(outerMesh);
+  centralGroup.add(outerMesh);
 
   // Glowing Points on Vertices
   const vertMat = new THREE.PointsMaterial({
     color: currentTheme.nodes,
-    size: 0.14,
+    size: 0.16,
     transparent: true,
     opacity: 0.95
   });
   const vertPoints = new THREE.Points(outerGeo, vertMat);
-  cyberGroup.add(vertPoints);
+  centralGroup.add(vertPoints);
 
-  // Inner Quantum Core
-  const innerGeo = new THREE.OctahedronGeometry(1.6, 2);
+  // Inner Quantum Polyhedron
+  const innerGeo = new THREE.OctahedronGeometry(2.3, 2);
   const innerMat = new THREE.MeshStandardMaterial({
     color: currentTheme.coreInner,
     wireframe: false,
     transparent: true,
-    opacity: 0.55,
+    opacity: 0.5,
     roughness: 0.1,
     metalness: 0.9
   });
   const innerMesh = new THREE.Mesh(innerGeo, innerMat);
-  cyberGroup.add(innerMesh);
+  centralGroup.add(innerMesh);
 
-  // Orbital Rings
-  const ring1Geo = new THREE.TorusGeometry(4.8, 0.035, 16, 90);
+  // Concentric Orbital Rings (Spanning large width across viewport)
+  // Ring 1 (Inner Torus)
+  const ring1Geo = new THREE.TorusGeometry(6.4, 0.045, 16, 110);
   const ring1Mat = new THREE.MeshBasicMaterial({
     color: currentTheme.ring1,
     transparent: true,
-    opacity: 0.75
+    opacity: 0.8
   });
   const ring1 = new THREE.Mesh(ring1Geo, ring1Mat);
   ring1.rotation.x = Math.PI / 3;
-  cyberGroup.add(ring1);
+  centralGroup.add(ring1);
 
-  const ring2Geo = new THREE.TorusGeometry(5.8, 0.025, 16, 100);
+  // Ring 2 (Middle Torus)
+  const ring2Geo = new THREE.TorusGeometry(8.5, 0.035, 16, 120);
   const ring2Mat = new THREE.MeshBasicMaterial({
     color: currentTheme.ring2,
     transparent: true,
-    opacity: 0.65
+    opacity: 0.7
   });
   const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
   ring2.rotation.y = Math.PI / 4;
-  ring2.rotation.x = -Math.PI / 6;
-  cyberGroup.add(ring2);
+  ring2.rotation.x = -Math.PI / 5;
+  centralGroup.add(ring2);
 
-  // Orbiting Satellite Nodes
-  const orbitNodesCount = 8;
+  // Ring 3 (Outer Wide Torus)
+  const ring3Geo = new THREE.TorusGeometry(10.8, 0.025, 16, 140);
+  const ring3Mat = new THREE.MeshBasicMaterial({
+    color: currentTheme.ring3,
+    transparent: true,
+    opacity: 0.55
+  });
+  const ring3 = new THREE.Mesh(ring3Geo, ring3Mat);
+  ring3.rotation.x = Math.PI / 2.2;
+  centralGroup.add(ring3);
+
+  // Orbiting Satellite Nodes on Rings
+  const orbitNodesCount = 10;
   const orbitNodes = [];
-  const nodeGeo = new THREE.SphereGeometry(0.12, 12, 12);
+  const nodeGeo = new THREE.SphereGeometry(0.14, 12, 12);
   const nodeMat = new THREE.MeshStandardMaterial({
     color: currentTheme.nodes,
     emissive: currentTheme.nodes,
-    emissiveIntensity: 0.8,
+    emissiveIntensity: 0.9,
     roughness: 0.1
   });
 
   for (let i = 0; i < orbitNodesCount; i++) {
     const node = new THREE.Mesh(nodeGeo, nodeMat);
-    cyberGroup.add(node);
+    centralGroup.add(node);
+    const ringRadius = i % 3 === 0 ? 6.4 : i % 3 === 1 ? 8.5 : 10.8;
     orbitNodes.push({
       mesh: node,
-      radius: i % 2 === 0 ? 4.8 : 5.8,
-      speed: (i % 2 === 0 ? 0.015 : -0.012) * (1 + (i % 3) * 0.2),
+      radius: ringRadius,
+      speed: (i % 2 === 0 ? 0.014 : -0.012) * (1 + (i % 3) * 0.2),
       angle: (i / orbitNodesCount) * Math.PI * 2,
-      axis: i % 2 === 0 ? 1 : 2
+      axis: i % 3
     });
   }
 
   // -------------------------------------------------------------
-  // 2. PARTICLES STARFIELD & CYBER DUST
+  // 5. AMBIENT FLOATING SATELLITE GEOMETRIES (Distributed Across Viewport)
   // -------------------------------------------------------------
-  const particleCount = 1400;
+  // These float on left, right, top, and bottom so the whole background has 3D depth!
+  const satellitesGroup = new THREE.Group();
+  scene.add(satellitesGroup);
+
+  const satelliteGeos = [
+    new THREE.OctahedronGeometry(1.2, 0),
+    new THREE.TetrahedronGeometry(1.4, 0),
+    new THREE.IcosahedronGeometry(1.1, 0),
+    new THREE.DodecahedronGeometry(1.0, 0),
+    new THREE.TorusGeometry(1.2, 0.08, 12, 32)
+  ];
+
+  const satelliteMat = new THREE.MeshStandardMaterial({
+    color: currentTheme.satellites,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.5,
+    roughness: 0.2,
+    metalness: 0.8
+  });
+
+  const satellites = [];
+  const satelliteConfigs = [
+    { x: -14, y: 7, z: -4, speedRot: 0.01, driftSpeed: 0.008, scale: 1.1 },
+    { x: 15, y: 8, z: -5, speedRot: -0.012, driftSpeed: 0.009, scale: 1.2 },
+    { x: -16, y: -2, z: -2, speedRot: 0.015, driftSpeed: 0.007, scale: 0.9 },
+    { x: 16, y: -4, z: -3, speedRot: -0.01, driftSpeed: 0.011, scale: 1.0 },
+    { x: -12, y: -10, z: -5, speedRot: 0.012, driftSpeed: 0.008, scale: 1.3 },
+    { x: 13, y: -11, z: -4, speedRot: -0.014, driftSpeed: 0.009, scale: 1.1 },
+    { x: -8, y: 12, z: -6, speedRot: 0.008, driftSpeed: 0.006, scale: 0.85 },
+    { x: 8, y: 13, z: -7, speedRot: -0.009, driftSpeed: 0.007, scale: 0.95 },
+    { x: -18, y: 3, z: -8, speedRot: 0.011, driftSpeed: 0.01, scale: 1.0 },
+    { x: 19, y: 2, z: -7, speedRot: -0.013, driftSpeed: 0.008, scale: 1.05 }
+  ];
+
+  satelliteConfigs.forEach((cfg, idx) => {
+    const geo = satelliteGeos[idx % satelliteGeos.length];
+    const mesh = new THREE.Mesh(geo, satelliteMat);
+    mesh.position.set(cfg.x, cfg.y, cfg.z);
+    mesh.scale.set(cfg.scale, cfg.scale, cfg.scale);
+    satellitesGroup.add(mesh);
+    satellites.push({
+      mesh: mesh,
+      baseX: cfg.x,
+      baseY: cfg.y,
+      baseZ: cfg.z,
+      speedRot: cfg.speedRot,
+      driftSpeed: cfg.driftSpeed,
+      phase: idx * 0.7
+    });
+  });
+
+  // -------------------------------------------------------------
+  // 6. EXPANSIVE PARTICLE STARFIELD (Covers Entire Screen)
+  // -------------------------------------------------------------
+  const particleCount = 2000;
   const particleGeo = new THREE.BufferGeometry();
   const positions = new Float32Array(particleCount * 3);
-  const originalPositions = new Float32Array(particleCount * 3);
 
   for (let i = 0; i < particleCount * 3; i += 3) {
-    const x = (Math.random() - 0.5) * 45;
-    const y = (Math.random() - 0.5) * 45;
-    const z = (Math.random() - 0.5) * 35;
-
-    positions[i] = x;
-    positions[i + 1] = y;
-    positions[i + 2] = z;
-
-    originalPositions[i] = x;
-    originalPositions[i + 1] = y;
-    originalPositions[i + 2] = z;
+    positions[i] = (Math.random() - 0.5) * 70;
+    positions[i + 1] = (Math.random() - 0.5) * 70;
+    positions[i + 2] = (Math.random() - 0.5) * 45;
   }
 
   particleGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
   const particleMat = new THREE.PointsMaterial({
     color: currentTheme.particles,
-    size: 0.09,
+    size: 0.11,
     transparent: true,
-    opacity: 0.75
+    opacity: 0.85
   });
 
   const particleSystem = new THREE.Points(particleGeo, particleMat);
   scene.add(particleSystem);
 
   // -------------------------------------------------------------
-  // 3. CYBER GRID (Lower Floor Horizon)
+  // 7. CYBER HORIZON GRID
   // -------------------------------------------------------------
-  const gridHelper = new THREE.GridHelper(60, 40, currentTheme.coreWire, currentTheme.grid);
-  gridHelper.position.y = -9;
-  gridHelper.material.opacity = 0.22;
+  let gridHelper = new THREE.GridHelper(80, 50, currentTheme.coreWire, currentTheme.grid);
+  gridHelper.position.y = -10;
+  gridHelper.material.opacity = 0.28;
   gridHelper.material.transparent = true;
   scene.add(gridHelper);
 
   // -------------------------------------------------------------
-  // 4. SCROLL INTERPOLATION & TARGETS
+  // 8. SCROLL CHOREOGRAPHY & TARGETS
   // -------------------------------------------------------------
-  // Target states for cyberGroup and camera per section
-  const sectionStates = {
-    home: {
-      groupPos: { x: 2.2, y: 0.3, z: 0.5 },
-      groupRot: { x: 0.1, y: 0.2, z: 0 },
-      scale: 1.0,
-      camPos: { x: 0, y: 0, z: 11.5 }
-    },
-    about: {
-      groupPos: { x: -3.2, y: -0.4, z: 1.2 },
-      groupRot: { x: 0.3, y: -0.6, z: 0.2 },
-      scale: 1.15,
-      camPos: { x: 0, y: -0.5, z: 12 }
-    },
-    skills: {
-      groupPos: { x: 0, y: 0.6, z: 2.8 },
-      groupRot: { x: -0.2, y: 1.2, z: -0.1 },
-      scale: 1.3,
-      camPos: { x: 0, y: 0, z: 13 }
-    },
-    experience: {
-      groupPos: { x: 3.4, y: -0.2, z: 1.0 },
-      groupRot: { x: 0.4, y: -0.8, z: 0.3 },
-      scale: 1.1,
-      camPos: { x: 0, y: -0.2, z: 12 }
-    },
-    education: {
-      groupPos: { x: -3.0, y: 0.4, z: 0.8 },
-      groupRot: { x: -0.3, y: 0.5, z: -0.2 },
-      scale: 1.05,
-      camPos: { x: 0, y: 0, z: 12 }
-    },
-    projects: {
-      groupPos: { x: 0, y: -0.8, z: 0.5 },
-      groupRot: { x: 0.6, y: 1.8, z: 0.1 },
-      scale: 1.2,
-      camPos: { x: 0, y: -0.4, z: 13.5 }
-    },
-    contact: {
-      groupPos: { x: 0, y: -1.2, z: 3.2 },
-      groupRot: { x: 0.1, y: 2.4, z: 0 },
-      scale: 1.35,
-      camPos: { x: 0, y: -0.6, z: 12.5 }
-    }
-  };
-
-  // Adjust coordinates if on mobile / narrow screen
+  // Responsive check
   const isMobile = () => window.innerWidth < 768;
 
-  const currentCam = { x: 0, y: 0, z: 11.5 };
-  const targetCam = { x: 0, y: 0, z: 11.5 };
-
-  const currentGroupPos = { x: 2.2, y: 0.3, z: 0.5 };
-  const targetGroupPos = { x: 2.2, y: 0.3, z: 0.5 };
+  // Base target camera & group transforms
+  const currentCam = { x: 0, y: 0, z: 13 };
+  const targetCam = { x: 0, y: 0, z: 13 };
 
   const currentGroupRot = { x: 0, y: 0, z: 0 };
   const targetGroupRot = { x: 0, y: 0, z: 0 };
 
   let currentScale = 1.0;
   let targetScale = 1.0;
+
+  // Section-specific camera depths and focal adjustments
+  const sectionWaypoints = {
+    home: { camY: 0, camZ: 13, scale: 1.0, tiltX: 0.1 },
+    about: { camY: -0.4, camZ: 12.2, scale: 1.1, tiltX: 0.2 },
+    skills: { camY: 0.2, camZ: 11.5, scale: 1.25, tiltX: -0.15 },
+    experience: { camY: -0.6, camZ: 12.5, scale: 1.1, tiltX: 0.25 },
+    education: { camY: 0.1, camZ: 12.0, scale: 1.05, tiltX: -0.1 },
+    projects: { camY: -0.5, camZ: 13.5, scale: 1.2, tiltX: 0.3 },
+    contact: { camY: -1.0, camZ: 12.0, scale: 1.3, tiltX: 0.1 }
+  };
+
+  const sectionsList = ["home", "about", "skills", "experience", "education", "projects", "contact"];
 
   // Pointer tracking for reactive parallax
   const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
@@ -286,57 +324,50 @@
     mouse.targetY = -(e.clientY / window.innerHeight - 0.5) * 2;
   });
 
-  // Calculate current target based on scroll position across sections
-  const sections = ["home", "about", "skills", "experience", "education", "projects", "contact"];
-
-  function updateScrollTargets() {
+  function updateScrollState() {
     const scrollY = window.scrollY;
     const windowH = window.innerHeight;
     const docH = document.documentElement.scrollHeight - windowH;
     const scrollRatio = Math.max(0, Math.min(1, scrollY / (docH || 1)));
 
-    // Find active section or calculate blend
+    // Continuous 3D rotation driven directly by scroll position!
+    targetGroupRot.y = scrollY * 0.0028;
+    targetGroupRot.x = Math.sin(scrollY * 0.001) * 0.35 + 0.1;
+    targetGroupRot.z = scrollY * 0.0008;
+
+    // Detect which section is currently centered
     let activeSec = "home";
-    for (let i = 0; i < sections.length; i++) {
-      const el = document.getElementById(sections[i]);
+    for (let i = 0; i < sectionsList.length; i++) {
+      const el = document.getElementById(sectionsList[i]);
       if (el) {
         const rect = el.getBoundingClientRect();
-        if (rect.top <= windowH * 0.45 && rect.bottom >= windowH * 0.2) {
-          activeSec = sections[i];
+        if (rect.top <= windowH * 0.5 && rect.bottom >= windowH * 0.2) {
+          activeSec = sectionsList[i];
           break;
         }
       }
     }
 
-    const state = sectionStates[activeSec] || sectionStates.home;
+    const wp = sectionWaypoints[activeSec] || sectionWaypoints.home;
 
     if (isMobile()) {
-      // Mobile: center the core slightly behind the cards with smaller scale
-      targetGroupPos.x = 0;
-      targetGroupPos.y = state.groupPos.y * 0.5;
-      targetGroupPos.z = Math.min(state.groupPos.z, 0.5);
-      targetScale = state.scale * 0.65;
+      targetCam.z = wp.camZ + 3;
+      targetCam.y = wp.camY * 0.5;
+      targetScale = wp.scale * 0.75;
     } else {
-      targetGroupPos.x = state.groupPos.x;
-      targetGroupPos.y = state.groupPos.y;
-      targetGroupPos.z = state.groupPos.z;
-      targetScale = state.scale;
+      targetCam.z = wp.camZ;
+      targetCam.y = wp.camY;
+      targetScale = wp.scale;
     }
 
-    targetGroupRot.x = state.groupRot.x;
-    targetGroupRot.y = state.groupRot.y + scrollRatio * Math.PI * 2;
-    targetGroupRot.z = state.groupRot.z;
-
-    targetCam.x = state.camPos.x;
-    targetCam.y = state.camPos.y;
-    targetCam.z = state.camPos.z;
+    targetGroupRot.x += wp.tiltX;
   }
 
-  window.addEventListener("scroll", updateScrollTargets, { passive: true });
-  updateScrollTargets();
+  window.addEventListener("scroll", updateScrollState, { passive: true });
+  updateScrollState();
 
   // -------------------------------------------------------------
-  // 5. ANIMATION LOOP
+  // 9. ANIMATION LOOP (60 FPS)
   // -------------------------------------------------------------
   let clock = new THREE.Clock();
   let isVisible = true;
@@ -352,74 +383,80 @@
     const delta = clock.getDelta();
     const elapsedTime = clock.getElapsedTime();
 
-    // Smooth lerp pointer
+    // Lerp pointer parallax
     mouse.x += (mouse.targetX - mouse.x) * 0.05;
     mouse.y += (mouse.targetY - mouse.y) * 0.05;
 
-    // Smooth lerp positions & camera
-    const lerpSpeed = prefersReducedMotion ? 0.03 : 0.055;
-    currentGroupPos.x += (targetGroupPos.x - currentGroupPos.x) * lerpSpeed;
-    currentGroupPos.y += (targetGroupPos.y - currentGroupPos.y) * lerpSpeed;
-    currentGroupPos.z += (targetGroupPos.z - currentGroupPos.z) * lerpSpeed;
-
-    cyberGroup.position.set(
-      currentGroupPos.x + mouse.x * 0.4,
-      currentGroupPos.y + mouse.y * 0.3,
-      currentGroupPos.z
-    );
-
+    // Lerp group rotations & scale
+    const lerpSpeed = prefersReducedMotion ? 0.03 : 0.06;
     currentGroupRot.x += (targetGroupRot.x - currentGroupRot.x) * lerpSpeed;
     currentGroupRot.y += (targetGroupRot.y - currentGroupRot.y) * lerpSpeed;
     currentGroupRot.z += (targetGroupRot.z - currentGroupRot.z) * lerpSpeed;
 
     currentScale += (targetScale - currentScale) * lerpSpeed;
-    cyberGroup.scale.set(currentScale, currentScale, currentScale);
+    centralGroup.scale.set(currentScale, currentScale, currentScale);
 
-    currentCam.x += (targetCam.x - currentCam.x) * lerpSpeed;
+    // Apply continuous rotation + mouse parallax to central group
+    centralGroup.rotation.x = currentGroupRot.x + mouse.y * 0.25;
+    centralGroup.rotation.y = currentGroupRot.y + (prefersReducedMotion ? 0 : elapsedTime * 0.12) + mouse.x * 0.35;
+    centralGroup.rotation.z = currentGroupRot.z;
+
+    // Camera lerp
     currentCam.y += (targetCam.y - currentCam.y) * lerpSpeed;
     currentCam.z += (targetCam.z - currentCam.z) * lerpSpeed;
 
     camera.position.set(
-      currentCam.x + mouse.x * 0.6,
-      currentCam.y + mouse.y * 0.4,
+      mouse.x * 0.7,
+      currentCam.y + mouse.y * 0.5,
       currentCam.z
     );
     camera.lookAt(0, 0, 0);
 
-    // Continuous 3D rotation & quantum pulse
+    // Quantum core animations
     if (!prefersReducedMotion) {
-      outerMesh.rotation.x = currentGroupRot.x + elapsedTime * 0.15;
-      outerMesh.rotation.y = currentGroupRot.y + elapsedTime * 0.2;
-      vertPoints.rotation.x = outerMesh.rotation.x;
-      vertPoints.rotation.y = outerMesh.rotation.y;
+      // Counter-rotating rings
+      ring1.rotation.z += 0.009;
+      ring2.rotation.z -= 0.007;
+      ring3.rotation.z += 0.005;
 
-      innerMesh.rotation.x = -elapsedTime * 0.3;
-      innerMesh.rotation.y = -elapsedTime * 0.25;
-
-      ring1.rotation.z += 0.008;
-      ring2.rotation.z -= 0.006;
-
-      // Pulse inner core
-      const pulse = 1 + Math.sin(elapsedTime * 2.5) * 0.08;
+      // Pulse inner crystal
+      const pulse = 1 + Math.sin(elapsedTime * 2.2) * 0.09;
       innerMesh.scale.set(pulse, pulse, pulse);
+      innerMesh.rotation.y = -elapsedTime * 0.25;
+      innerMesh.rotation.x = elapsedTime * 0.15;
 
-      // Orbiting data nodes
+      // Orbiting satellite nodes on rings
       orbitNodes.forEach((item) => {
         item.angle += item.speed;
-        if (item.axis === 1) {
+        if (item.axis === 0) {
           item.mesh.position.x = Math.cos(item.angle) * item.radius;
           item.mesh.position.y = Math.sin(item.angle) * item.radius * 0.5;
           item.mesh.position.z = Math.sin(item.angle) * item.radius * 0.86;
-        } else {
-          item.mesh.position.x = Math.cos(item.angle) * item.radius * 0.8;
+        } else if (item.axis === 1) {
+          item.mesh.position.x = Math.cos(item.angle) * item.radius * 0.75;
           item.mesh.position.y = Math.sin(item.angle) * item.radius;
-          item.mesh.position.z = Math.cos(item.angle) * item.radius * 0.4;
+          item.mesh.position.z = Math.cos(item.angle) * item.radius * 0.5;
+        } else {
+          item.mesh.position.x = Math.cos(item.angle) * item.radius;
+          item.mesh.position.y = Math.sin(item.angle) * 0.6;
+          item.mesh.position.z = Math.sin(item.angle) * item.radius;
         }
       });
 
-      // Subtle particle drift
-      particleSystem.rotation.y = elapsedTime * 0.02 + mouse.x * 0.05;
-      particleSystem.rotation.x = mouse.y * 0.04;
+      // Floating background satellites animation
+      const scrollY = window.scrollY;
+      satellites.forEach((sat) => {
+        sat.mesh.rotation.x += sat.speedRot;
+        sat.mesh.rotation.y += sat.speedRot * 1.3;
+        // Float with sinusoidal drift + parallax from scroll
+        const floatY = Math.sin(elapsedTime * 1.2 + sat.phase) * 0.6;
+        const scrollOffset = (scrollY * 0.003) * (sat.baseZ < -5 ? 0.6 : 1.2);
+        sat.mesh.position.y = sat.baseY + floatY - (scrollOffset % 15);
+      });
+
+      // Gentle starfield drift
+      particleSystem.rotation.y = elapsedTime * 0.02 + mouse.x * 0.04;
+      particleSystem.rotation.x = mouse.y * 0.03;
     }
 
     renderer.render(scene, camera);
@@ -428,18 +465,18 @@
   animate();
 
   // -------------------------------------------------------------
-  // 6. RESIZE HANDLER
+  // 10. RESIZE & VIEWPORT HANDLER
   // -------------------------------------------------------------
   window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
-    updateScrollTargets();
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+    updateScrollState();
   });
 
   // -------------------------------------------------------------
-  // 7. DYNAMIC THEME SYNCHRONIZATION
+  // 11. DYNAMIC THEME UPDATE HOOK
   // -------------------------------------------------------------
   window.updateThreeTheme = function (themeKey) {
     const t = themes[themeKey] || themes.dark;
@@ -450,18 +487,19 @@
     innerMat.color.setHex(t.coreInner);
     ring1Mat.color.setHex(t.ring1);
     ring2Mat.color.setHex(t.ring2);
+    ring3Mat.color.setHex(t.ring3);
     nodeMat.color.setHex(t.nodes);
     nodeMat.emissive.setHex(t.nodes);
+    satelliteMat.color.setHex(t.satellites);
     particleMat.color.setHex(t.particles);
     pointLight1.color.setHex(t.light1);
     pointLight2.color.setHex(t.light2);
 
-    // Update grid helper colors
     scene.remove(gridHelper);
-    const newGrid = new THREE.GridHelper(60, 40, t.coreWire, t.grid);
-    newGrid.position.y = -9;
-    newGrid.material.opacity = 0.22;
-    newGrid.material.transparent = true;
-    scene.add(newGrid);
+    gridHelper = new THREE.GridHelper(80, 50, t.coreWire, t.grid);
+    gridHelper.position.y = -10;
+    gridHelper.material.opacity = 0.28;
+    gridHelper.material.transparent = true;
+    scene.add(gridHelper);
   };
 })();
