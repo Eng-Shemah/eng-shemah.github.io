@@ -1,7 +1,6 @@
 /**
  * Gwiza Robert SHEMA — Futuristic Portfolio Main Controller
- * Handles Theme, Audio FX, 3D Tilt, Cyber Typewriter, Project Filtering,
- * and Scroll Progress.
+ * Handles Theme, Audio FX, 3D Tilt, Cyber Typewriter, Project Filtering.
  */
 
 // Footer year
@@ -11,21 +10,7 @@ if (yearEl) {
 }
 
 // -------------------------------------------------------------
-// 1. SCROLL PROGRESS BAR
-// -------------------------------------------------------------
-const progressBar = document.getElementById("scrollProgressBar");
-function updateProgressBar() {
-  if (!progressBar) return;
-  const scrollY = window.scrollY;
-  const docH = document.documentElement.scrollHeight - window.innerHeight;
-  const progress = docH > 0 ? (scrollY / docH) * 100 : 0;
-  progressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
-}
-window.addEventListener("scroll", updateProgressBar, { passive: true });
-updateProgressBar();
-
-// -------------------------------------------------------------
-// 2. CONTACT FORM (Mailto handler)
+// 1. CONTACT FORM (Mailto handler)
 // -------------------------------------------------------------
 const contactForm = document.getElementById("contactForm");
 if (contactForm) {
