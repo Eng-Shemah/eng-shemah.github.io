@@ -1,0 +1,8 @@
+name = "eng-shemah-github-io"
+compatibility_date = "2024-09-23"
+
+# Plain static site (no build step) served directly as Workers static
+# assets — this is what makes `npx wrangler deploy` work with nothing
+# else configured.
+[assets]
+directory = "."
