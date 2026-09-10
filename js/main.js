@@ -1,12 +1,37 @@
-// Footer year
-document.getElementById("year").textContent = new Date().getFullYear();
+/**
+ * Gwiza Robert SHEMA — Futuristic Portfolio Main Controller
+ * Handles Theme, Audio FX, 3D Tilt, Cyber Typewriter, Project Filtering,
+ * and Scroll Progress.
+ */
 
-// Contact form -> opens the visitor's own email client with the message
-// pre-filled (no backend on GitHub Pages, so nothing is sent from here).
+// Footer year
+const yearEl = document.getElementById("year");
+if (yearEl) {
+  yearEl.textContent = new Date().getFullYear();
+}
+
+// -------------------------------------------------------------
+// 1. SCROLL PROGRESS BAR
+// -------------------------------------------------------------
+const progressBar = document.getElementById("scrollProgressBar");
+function updateProgressBar() {
+  if (!progressBar) return;
+  const scrollY = window.scrollY;
+  const docH = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = docH > 0 ? (scrollY / docH) * 100 : 0;
+  progressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+}
+window.addEventListener("scroll", updateProgressBar, { passive: true });
+updateProgressBar();
+
+// -------------------------------------------------------------
+// 2. CONTACT FORM (Mailto handler)
+// -------------------------------------------------------------
 const contactForm = document.getElementById("contactForm");
 if (contactForm) {
   contactForm.addEventListener("submit", (e) => {
     e.preventDefault();
+    if (window.CyberAudio) window.CyberAudio.playClick();
     const name = contactForm.name.value.trim();
     const email = contactForm.email.value.trim();
     const message = contactForm.message.value.trim();
@@ -19,39 +44,24 @@ if (contactForm) {
   });
 }
 
-// Decorative MacBook fixed behind the whole page: spins in 3D as you scroll.
-const macbook3d = document.getElementById("macbook3d");
-if (macbook3d && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-  let macbookTicking = false;
-  const updateMacbook = () => {
-    const angle = -18 + window.scrollY * 0.6;
-    macbook3d.style.transform = `rotateY(${angle}deg) rotateX(6deg)`;
-    macbookTicking = false;
-  };
-  window.addEventListener(
-    "scroll",
-    () => {
-      if (!macbookTicking) {
-        macbookTicking = true;
-        requestAnimationFrame(updateMacbook);
-      }
-    },
-    { passive: true },
-  );
-  updateMacbook();
-}
-
-// Mobile nav toggle
+// -------------------------------------------------------------
+// 3. MOBILE NAV TOGGLE
+// -------------------------------------------------------------
 const navToggle = document.getElementById("navToggle");
 const navLinks = document.getElementById("navLinks");
-navToggle.addEventListener("click", () => {
-  navLinks.classList.toggle("open");
-});
-navLinks.querySelectorAll("a").forEach((link) => {
-  link.addEventListener("click", () => navLinks.classList.remove("open"));
-});
+if (navToggle && navLinks) {
+  navToggle.addEventListener("click", () => {
+    if (window.CyberAudio) window.CyberAudio.playClick();
+    navLinks.classList.toggle("open");
+  });
+  navLinks.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => navLinks.classList.remove("open"));
+  });
+}
 
-// Theme toggle (persisted per-browser via localStorage)
+// -------------------------------------------------------------
+// 4. THEME TOGGLE (Dark / Light + Three.js Sync)
+// -------------------------------------------------------------
 const root = document.documentElement;
 const themeToggle = document.getElementById("themeToggle");
 const iconMoon = document.getElementById("themeIconMoon");
@@ -59,31 +69,181 @@ const iconSun = document.getElementById("themeIconSun");
 
 function applyTheme(theme) {
   root.setAttribute("data-theme", theme);
-  iconMoon.style.display = theme === "dark" ? "none" : "block";
-  iconSun.style.display = theme === "dark" ? "block" : "none";
-}
+  if (iconMoon) iconMoon.style.display = theme === "dark" ? "none" : "block";
+  if (iconSun) iconSun.style.display = theme === "dark" ? "block" : "none";
 
-let stored = null;
-try {
-  stored = localStorage.getItem("bb-portfolio-theme");
-} catch {
-  // localStorage unavailable (private browsing, etc.) — fall back to system preference
-}
-const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-applyTheme(stored || (prefersDark ? "dark" : "light"));
-
-themeToggle.addEventListener("click", () => {
-  const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-  applyTheme(next);
-  try {
-    localStorage.setItem("bb-portfolio-theme", next);
-  } catch {
-    // ignore write failures
+  // Notify Three.js scene of theme change
+  if (window.updateThreeTheme) {
+    window.updateThreeTheme(theme);
   }
-});
+}
 
-// Fade-in on scroll, staggered within each container
-const groups = document.querySelectorAll(".skills-grid, .projects-grid, .contact-grid, .timeline");
+let storedTheme = null;
+try {
+  storedTheme = localStorage.getItem("bb-portfolio-theme");
+} catch (e) {}
+
+const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+applyTheme(storedTheme || (prefersDark ? "dark" : "light"));
+
+if (themeToggle) {
+  themeToggle.addEventListener("click", () => {
+    const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    applyTheme(next);
+    if (window.CyberAudio) window.CyberAudio.playModeToggle();
+    try {
+      localStorage.setItem("bb-portfolio-theme", next);
+    } catch (e) {}
+  });
+}
+
+// -------------------------------------------------------------
+// 5. CYBER AUDIO CONTROLLER & SFX HOOKS
+// -------------------------------------------------------------
+const audioToggle = document.getElementById("audioToggle");
+const audioIconMuted = document.getElementById("audioIconMuted");
+const audioIconActive = document.getElementById("audioIconActive");
+
+function syncAudioUI() {
+  if (!window.CyberAudio || !audioToggle) return;
+  const muted = window.CyberAudio.isMuted();
+  if (audioIconMuted) audioIconMuted.style.display = muted ? "block" : "none";
+  if (audioIconActive) audioIconActive.style.display = muted ? "none" : "block";
+  audioToggle.classList.toggle("audio-active", !muted);
+  audioToggle.setAttribute(
+    "title",
+    muted ? "Enable Sci-Fi Audio SFX" : "Mute Sci-Fi Audio SFX"
+  );
+}
+
+if (audioToggle) {
+  syncAudioUI();
+  audioToggle.addEventListener("click", () => {
+    if (window.CyberAudio) {
+      window.CyberAudio.toggleMute();
+      syncAudioUI();
+    }
+  });
+}
+
+// Attach subtle hover & click sounds to interactive items
+function attachSoundEffects() {
+  const clickables = document.querySelectorAll(
+    "a, button, .btn, .filter-btn, .project-card, .skill-card, .contact-card"
+  );
+  clickables.forEach((el) => {
+    el.addEventListener(
+      "mouseenter",
+      () => {
+        if (window.CyberAudio) window.CyberAudio.playHover();
+      },
+      { passive: true }
+    );
+    el.addEventListener(
+      "click",
+      () => {
+        if (window.CyberAudio) window.CyberAudio.playClick();
+      },
+      { passive: true }
+    );
+  });
+}
+attachSoundEffects();
+
+// -------------------------------------------------------------
+// 6. CYBER TYPEWRITER & ROLE DECODER
+// -------------------------------------------------------------
+const typewriterEl = document.getElementById("typewriterRole");
+if (typewriterEl) {
+  const roles = [
+    "Flutter & Mobile Developer",
+    "Full-Stack Web Architect",
+    "Oracle PL/SQL & Data Systems",
+    "Software QA & Security Enthusiast"
+  ];
+  const glitchChars = "!<>-_\\/[]{}—=+*^?#________";
+  let roleIndex = 0;
+  let isDeleting = false;
+  let currentText = "";
+  let charIndex = 0;
+
+  function typeEffect() {
+    const fullText = roles[roleIndex];
+
+    if (!isDeleting) {
+      // Typing forward with occasional cyber glitch char
+      currentText = fullText.substring(0, charIndex + 1);
+      charIndex++;
+
+      // Decode flash
+      if (charIndex < fullText.length && Math.random() < 0.25) {
+        const randomChar = glitchChars[Math.floor(Math.random() * glitchChars.length)];
+        typewriterEl.textContent = currentText.slice(0, -1) + randomChar;
+      } else {
+        typewriterEl.textContent = currentText;
+      }
+
+      if (charIndex === fullText.length) {
+        // Pause at full word
+        isDeleting = true;
+        setTimeout(typeEffect, 2400);
+        return;
+      }
+      setTimeout(typeEffect, 60 + Math.random() * 40);
+    } else {
+      // Deleting backwards
+      currentText = fullText.substring(0, charIndex - 1);
+      charIndex--;
+      typewriterEl.textContent = currentText;
+
+      if (charIndex === 0) {
+        isDeleting = false;
+        roleIndex = (roleIndex + 1) % roles.length;
+        setTimeout(typeEffect, 400);
+        return;
+      }
+      setTimeout(typeEffect, 30);
+    }
+  }
+
+  typeEffect();
+}
+
+// -------------------------------------------------------------
+// 7. PROJECT CATEGORY FILTER ENGINE
+// -------------------------------------------------------------
+const filterContainer = document.getElementById("projectFilters");
+if (filterContainer) {
+  const filterBtns = filterContainer.querySelectorAll(".filter-btn");
+  const projectItems = document.querySelectorAll(
+    ".projects-grid .project-card, .featured-app"
+  );
+
+  filterBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      filterBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      const filter = btn.getAttribute("data-filter");
+
+      projectItems.forEach((card) => {
+        const cat = card.getAttribute("data-category");
+        if (filter === "all" || cat === filter) {
+          card.classList.remove("filter-hidden");
+        } else {
+          card.classList.add("filter-hidden");
+        }
+      });
+    });
+  });
+}
+
+// -------------------------------------------------------------
+// 8. FADE-IN OBSERVER ON SCROLL
+// -------------------------------------------------------------
+const groups = document.querySelectorAll(
+  ".skills-grid, .projects-grid, .contact-grid, .timeline"
+);
 groups.forEach((group) => {
   Array.from(group.children).forEach((child, i) => {
     child.style.transitionDelay = `${Math.min(i, 6) * 60}ms`;
@@ -103,7 +263,9 @@ const observer = new IntersectionObserver(
 );
 document.querySelectorAll(".fade-in").forEach((el) => observer.observe(el));
 
-// Highlight active nav link while scrolling
+// -------------------------------------------------------------
+// 9. ACTIVE NAV LINK TRACKER
+// -------------------------------------------------------------
 const sections = document.querySelectorAll("main section[id]");
 const navAnchors = document.querySelectorAll(".nav-links a");
 const sectionObserver = new IntersectionObserver(
@@ -111,7 +273,8 @@ const sectionObserver = new IntersectionObserver(
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
         navAnchors.forEach((a) => {
-          a.style.color = a.getAttribute("href") === `#${entry.target.id}` ? "var(--accent)" : "";
+          a.style.color =
+            a.getAttribute("href") === `#${entry.target.id}` ? "var(--accent)" : "";
         });
       }
     });
@@ -120,27 +283,30 @@ const sectionObserver = new IntersectionObserver(
 );
 sections.forEach((s) => sectionObserver.observe(s));
 
-// 3D tilt + cursor spotlight on glass cards (skipped for touch devices and reduced-motion users)
+// -------------------------------------------------------------
+// 10. ADVANCED 3D TILT WITH LIGHT GLARE
+// -------------------------------------------------------------
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const isTouch = window.matchMedia("(hover: none)").matches;
 
 if (!prefersReducedMotion && !isTouch) {
   document.querySelectorAll(".tilt").forEach((card) => {
-    const maxTilt = 8; // degrees
+    const maxTilt = 7; // degrees
 
     card.addEventListener("mousemove", (e) => {
       const rect = card.getBoundingClientRect();
-      const px = (e.clientX - rect.left) / rect.width; // 0..1
+      const px = (e.clientX - rect.left) / rect.width;
       const py = (e.clientY - rect.top) / rect.height;
       const rotateY = (px - 0.5) * maxTilt * 2;
       const rotateX = (0.5 - py) * maxTilt * 2;
-      card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
-      card.style.setProperty("--mx", `${px * 100}%`);
-      card.style.setProperty("--my", `${py * 100}%`);
+
+      card.style.transform = `perspective(850px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-4px)`;
+      card.style.setProperty("--mx", `${(px * 100).toFixed(1)}%`);
+      card.style.setProperty("--my", `${(py * 100).toFixed(1)}%`);
     });
 
     card.addEventListener("mouseleave", () => {
-      card.style.transform = "perspective(800px) rotateX(0) rotateY(0) translateY(0)";
+      card.style.transform = "perspective(850px) rotateX(0deg) rotateY(0deg) translateY(0px)";
     });
   });
 }
